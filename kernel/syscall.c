@@ -41,7 +41,6 @@ char *syscall_names[] = {
 void
 auditlog(int pid, int syscall_num)
 {
-  struct file *f;
   struct inode *ip, *dp;
   char buf[128];
   char name[DIRSIZ];
@@ -82,40 +81,32 @@ auditlog(int pid, int syscall_num)
     ilock(ip);
   }
   
-  if((f = filealloc()) != 0) {
-    f->type = FD_INODE;
-    f->ip = ip;
-    f->off = ip->size;
-    f->readable = 0;
-    f->writable = 1;
-    
-    buf[0] = 'P';
-    buf[1] = 'I';
-    buf[2] = 'D';
-    buf[3] = ':';
-    i = 4;
-    if(pid >= 10) buf[i++] = '0' + (pid / 10);
-    buf[i++] = '0' + (pid % 10);
-    buf[i++] = ' ';
-    buf[i++] = 'S';
-    buf[i++] = 'Y';
-    buf[i++] = 'S';
-    buf[i++] = 'C';
-    buf[i++] = 'A';
-    buf[i++] = 'L';
-    buf[i++] = 'L';
-    buf[i++] = ':';
-    for(n = 0; syscall_names[syscall_num][n]; n++)
-      buf[i++] = syscall_names[syscall_num][n];
-    buf[i++] = '\n';
-    n = i;
-    
-    filewrite(f, (uint64)buf, n);
-    fileclose(f);
-  } else {
-    iunlockput(ip);
-  }
+  buf[0] = 'P';
+  buf[1] = 'I';
+  buf[2] = 'D';
+  buf[3] = ':';
+  i = 4;
+  if(pid >= 100) buf[i++] = '0' + (pid / 100) % 10;
+  if(pid >= 10) buf[i++] = '0' + (pid / 10) % 10;
+  buf[i++] = '0' + (pid % 10);
+  buf[i++] = ' ';
+  buf[i++] = 'S';
+  buf[i++] = 'Y';
+  buf[i++] = 'S';
+  buf[i++] = 'C';
+  buf[i++] = 'A';
+  buf[i++] = 'L';
+  buf[i++] = 'L';
+  buf[i++] = ':';
+  for(n = 0; syscall_names[syscall_num][n]; n++)
+    buf[i++] = syscall_names[syscall_num][n];
+  buf[i++] = '\n';
+  n = i;
   
+  writei(ip, 0, (uint64)buf, ip->size, n);
+  iupdate(ip);
+  
+  iunlockput(ip);
   end_op();
 }
 

